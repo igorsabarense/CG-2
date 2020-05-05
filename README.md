@@ -1,1 +1,1 @@
-# CG-2
+# Computação Gráfica - Curvas Paramétricas - Trabalho Prático II
