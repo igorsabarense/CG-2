@@ -194,6 +194,34 @@ public class PanelDesenho extends JPanel implements MouseListener, MouseMotionLi
             drawLinePoints( (int)x, (int)y );
         }
     }
+	
+	public void plotHermite() {
+		Point r1 = new Point((int) (3 * (pontosCurva[1].getX() - pontosCurva[0].getX())),
+				(int) (3 * (pontosCurva[1].getY() - pontosCurva[0].getY())));
+		Point r2 = new Point((int) (3 * (pontosCurva[3].getX() - pontosCurva[2].getX())),
+				(int) (3 * (pontosCurva[3].getY() - pontosCurva[2].getY())));
+
+		double x0 = pontosCurva[0].getX();
+		double y0 = pontosCurva[0].getY();
+
+		double x, y;
+
+		double incr = 0.0001;
+
+		for (double t = 0.0; t <= 1.0; t += incr) {
+			x =      ((2 * Math.pow(t, 3) + -2 * Math.pow(t, 2) + 1 * t + 1) * pontosCurva[0].getX()
+					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + -2 * t + -1) * pontosCurva[1].getX()
+					+ (0 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 1 * t + 0) * pontosCurva[2].getX()
+					+ (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getX());
+
+			y =      ((2 * Math.pow(t, 3) + -2 * Math.pow(t, 2) + 1 * t + 1) * pontosCurva[0].getY()
+					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + -2 * t + -1) * pontosCurva[1].getY()
+					+ (0 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 1 * t + 0) * pontosCurva[2].getY()
+					+ (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getY());
+
+			drawLinePoints((int) x, (int) y);
+		}
+	}
 
     @Override
     public void mouseClicked(MouseEvent e) {
