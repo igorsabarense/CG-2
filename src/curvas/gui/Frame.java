@@ -79,7 +79,7 @@ public class Frame extends javax.swing.JFrame {
                 .addContainerGap())
         );
         
-        pack();
+        
         
         jPanel1Layout.setVerticalGroup(
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -106,6 +106,8 @@ public class Frame extends javax.swing.JFrame {
                     .addContainerGap()
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             );
+            
+            pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btPontosCurvaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btPontosCurvaActionPerformed
