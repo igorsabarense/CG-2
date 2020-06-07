@@ -12,304 +12,321 @@ import javax.swing.JPanel;
 
 public class PanelDesenho extends JPanel implements MouseListener, MouseMotionListener {
 
-    // Matriz com a imagem mostrada no panel
-    private int[][] matrizImagem = null;
+	// Matriz com a imagem mostrada no panel
+	private int[][] matrizImagem = null;
 
-    // numero do ponto para saber se e' o primeiro, ou segundo, ....
-    private int numPonto = 0;
+	// numero do ponto para saber se e' o primeiro, ou segundo, ....
+	private int numPonto = 0;
 
-    /*
-    pontos para representar a curva:
-    Bezier:
-    ponto 0: ponto inicial da curva
-    ponto 1: ponto de controle 1 da curva
-    ponto 2: ponto de controle 2 da curva
-    ponto 3: ponto final da curva
-     */
-    private final Point[] pontosCurva;
+	/*
+	 * pontos para representar a curva: Bezier: ponto 0: ponto inicial da curva
+	 * ponto 1: ponto de controle 1 da curva ponto 2: ponto de controle 2 da curva
+	 * ponto 3: ponto final da curva
+	 */
+	private final Point[] pontosCurva;
 
-    // id da curva a ser desenhada
-    private int idCurvaDesenho;
-    private final int BEZIER = 1;
+	// id da curva a ser desenhada
+	private int idCurvaDesenho;
+	private final int BEZIER = 1;
+	private final int HERMITE = 2;
 
-    // variavel para saber se e' para arrastar um ponto
-    private boolean arrastarPonto;
-    // variavel para verificar se existe uma curva desenhada na tela
-    private boolean existeDesenho;
-    // ponto a ser arrastado 
-    private int pontoArrastado;
+	// variavel para saber se e' para arrastar um ponto
+	private boolean arrastarPonto;
+	// variavel para verificar se existe uma curva desenhada na tela
+	private boolean existeDesenho;
+	// ponto a ser arrastado
+	private int pontoArrastado;
 
-    public PanelDesenho() {
-        super();
+	public PanelDesenho() {
+		super();
 
-        addMouseListener(this);
-        addMouseMotionListener(this);
+		addMouseListener(this);
+		addMouseMotionListener(this);
 
-        this.arrastarPonto = false;
-        this.pontoArrastado = -1;
-        this.existeDesenho = false;
+		this.arrastarPonto = false;
+		this.pontoArrastado = -1;
+		this.existeDesenho = false;
 
-        this.pontosCurva = new Point[4];
-        for (int i = 0; i < 4; i++) {
-            this.pontosCurva[i] = new Point(-1, -1);
-        }
+		this.pontosCurva = new Point[4];
+		for (int i = 0; i < 4; i++) {
+			this.pontosCurva[i] = new Point(-1, -1);
+		}
 
-        matrizImagem = new int[1280][720];
-        limparMatriz();
-    }
-    
-    /**
-     * Desenha os pontos na tela 
-     */
-    public void desenhaPontos(Graphics2D graphics) {
-        for (int i = 0; i < 4; i++) {
+		matrizImagem = new int[1280][720];
+		limparMatriz();
+	}
 
-            Point ponto = pontosCurva[i];
+	/**
+	 * Desenha os pontos na tela
+	 */
+	public void desenhaPontos(Graphics2D graphics) {
+		for (int i = 0; i < 4; i++) {
 
-            if (ponto.getX() != -1.0 && ponto.getY() != -1.0) {
+			Point ponto = pontosCurva[i];
 
-                //  pontos de controle de BEZIER como vermelho
-                if (this.existeDesenho && this.idCurvaDesenho == BEZIER) {
-                    if (i == 1 || i == 2) {
-                        graphics.setColor(Color.RED);
-                    } else {
-                        graphics.setColor(Color.BLACK);
-                    }
-                }// fim if
+			if (ponto.getX() != -1.0 && ponto.getY() != -1.0) {
 
-                graphics.fillOval((int) ponto.getX(), (int) ponto.getY(), 5, 5);
-            }
-        }
-    }
+				// pontos de controle de BEZIER como vermelho
+				if (this.existeDesenho && this.idCurvaDesenho == BEZIER || this.idCurvaDesenho == HERMITE) {
+					if (i == 1 || i == 2) {
+						graphics.setColor(Color.RED);
+					} else {
+						graphics.setColor(Color.BLACK);
+					}
+				} // fim if
 
-    /**
-     * Desenha os pontos individuais da curva do ponto inicial ate o final
-     *
-     * @param x
-     * @param y
-     */
-    public void drawLinePoints(int x, int y) {
-        if (x >= 0 && x < matrizImagem.length && y >= 0 && y < matrizImagem[0].length) {
-                matrizImagem[x][y] = 0;
-        }
-    }
+				graphics.fillOval((int) ponto.getX(), (int) ponto.getY(), 5, 5);
+			}
+		}
+	}
 
-    /**
-     * Metodo para inicializar as variaveis para os pontos iniciais de Bezier
-     */
-    public void inicializarCurvaBezier() {
-        this.idCurvaDesenho = this.BEZIER;
-        this.existeDesenho = false;
+	/**
+	 * Desenha os pontos individuais da curva do ponto inicial ate o final
+	 *
+	 * @param x
+	 * @param y
+	 */
+	public void drawLinePoints(int x, int y) {
+		if (x >= 0 && x < matrizImagem.length && y >= 0 && y < matrizImagem[0].length) {
+			matrizImagem[x][y] = 0;
+		}
+	}
 
-        for (int i = 0; i < 4; i++) {
-            this.pontosCurva[i] = new Point(-1, -1);
-        }
-        this.numPonto = 0;
+	/**
+	 * Metodo para inicializar as variaveis para os pontos iniciais de Bezier
+	 */
+	public void inicializarCurvaBezier() {
+		this.idCurvaDesenho = this.BEZIER;
+		this.existeDesenho = false;
 
-        limparMatriz();
-        repaint();
-    }
+		for (int i = 0; i < 4; i++) {
+			this.pontosCurva[i] = new Point(-1, -1);
+		}
+		this.numPonto = 0;
 
-    /**
-     * Limpa a matriz mostrada deixando ela toda branca
-     */
-    public void limparMatriz() {
+		limparMatriz();
+		repaint();
+	}
 
-        for (int i = 0; i < this.matrizImagem.length; i++) {
-            for (int j = 0; j < this.matrizImagem[0].length; j++) {
-                this.matrizImagem[i][j] = 0xFFFFFFFF;
-            }
-        }
-    }
+	public void inicializarCurvaHermite() {
+		this.idCurvaDesenho = this.HERMITE;
+		this.existeDesenho = false;
 
-    /**
-     * Transforma uma matriz para um BufferedImage
-     *
-     * @param matriz matriz de pixels RGBA
-     * @return buffer equivalente a matriz
-     */
-    public BufferedImage matrixToBuffer(int[][] matriz) {
+		for (int i = 0; i < 4; i++) {
+			this.pontosCurva[i] = new Point(-1, -1);
+		}
+		this.numPonto = 0;
 
-        BufferedImage image = new BufferedImage(matriz.length, matriz[0].length, BufferedImage.TYPE_INT_RGB);
+		limparMatriz();
+		repaint();
 
-        for (int i = 0; i < matriz.length; i++) {
-            for (int j = 0; j < matriz[0].length; j++) {
-                int pixel = matriz[i][j];
+	}
 
-                int alpha = pixel >> 24 & 0XFF;
-                int red = pixel >> 16 & 0xFF;
-                int green = pixel >> 8 & 0XFF;
-                int blue = pixel & 0xFF;
+	/**
+	 * Limpa a matriz mostrada deixando ela toda branca
+	 */
+	public void limparMatriz() {
 
-                pixel = (alpha << 24) + (red << 16) + (green << 8) + blue;
+		for (int i = 0; i < this.matrizImagem.length; i++) {
+			for (int j = 0; j < this.matrizImagem[0].length; j++) {
+				this.matrizImagem[i][j] = 0xFFFFFFFF;
+			}
+		}
+	}
 
-                image.setRGB(i, j, pixel);
-            }
-        }
+	/**
+	 * Transforma uma matriz para um BufferedImage
+	 *
+	 * @param matriz matriz de pixels RGBA
+	 * @return buffer equivalente a matriz
+	 */
+	public BufferedImage matrixToBuffer(int[][] matriz) {
 
-        return image;
-    }
+		BufferedImage image = new BufferedImage(matriz.length, matriz[0].length, BufferedImage.TYPE_INT_RGB);
 
-    
-    @Override
-    public void paint(Graphics g) {
+		for (int i = 0; i < matriz.length; i++) {
+			for (int j = 0; j < matriz[0].length; j++) {
+				int pixel = matriz[i][j];
 
-        Graphics2D graphics = (Graphics2D) g;
+				int alpha = pixel >> 24 & 0XFF;
+				int red = pixel >> 16 & 0xFF;
+				int green = pixel >> 8 & 0XFF;
+				int blue = pixel & 0xFF;
 
-        graphics.clearRect(0, 0, this.getWidth(), this.getHeight());
+				pixel = (alpha << 24) + (red << 16) + (green << 8) + blue;
 
-        if (matrizImagem != null) {
-            graphics.drawImage(matrixToBuffer(matrizImagem), 0, 0, null);
+				image.setRGB(i, j, pixel);
+			}
+		}
 
-            desenhaPontos(graphics);
-        }
-    }
-    
-    
-    /**
-     * Metodo para desenhar a curva de Bezier na tela
-     */
-    public void plotBezier() {
-        Point r1 = new Point((int) (3 * (pontosCurva[1].getX() - pontosCurva[0].getX())), (int) (3 * (pontosCurva[1].getY() - pontosCurva[0].getY())));
-        Point r2 = new Point((int) (3 * (pontosCurva[3].getX() - pontosCurva[2].getX())), (int) (3 * (pontosCurva[3].getY() - pontosCurva[2].getY())));
+		return image;
+	}
 
-        double x0 = pontosCurva[0].getX();
-        double y0 = pontosCurva[0].getY();
+	@Override
+	public void paint(Graphics g) {
 
-        double x, y;
+		Graphics2D graphics = (Graphics2D) g;
 
-        double incr = 0.0001;
+		graphics.clearRect(0, 0, this.getWidth(), this.getHeight());
 
-        for (double t = 0.0; t <= 1.0; t += incr) {
-            x = ((-1 * Math.pow(t, 3) + 3 * Math.pow(t, 2) - 3 * t + 1) * pontosCurva[0].getX()
-                    + (3 * Math.pow(t, 3) - 6 * Math.pow(t, 2) + 3 * t + 0) * pontosCurva[1].getX()
-                    + (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[2].getX()
-                    + (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getX());
+		if (matrizImagem != null) {
+			graphics.drawImage(matrixToBuffer(matrizImagem), 0, 0, null);
 
-            y = ((-1 * Math.pow(t, 3) + 3 * Math.pow(t, 2) - 3 * t + 1) * pontosCurva[0].getY()
-                    + (3 * Math.pow(t, 3) - 6 * Math.pow(t, 2) + 3 * t + 0) * pontosCurva[1].getY()
-                    + (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[2].getY()
-                    + (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getY());
+			desenhaPontos(graphics);
+		}
+	}
 
-            drawLinePoints( (int)x, (int)y );
-        }
-    }
-	
-	public void plotHermite() {
-		Point r1 = new Point((int) (3 * (pontosCurva[1].getX() - pontosCurva[0].getX())),
-				(int) (3 * (pontosCurva[1].getY() - pontosCurva[0].getY())));
-		Point r2 = new Point((int) (3 * (pontosCurva[3].getX() - pontosCurva[2].getX())),
-				(int) (3 * (pontosCurva[3].getY() - pontosCurva[2].getY())));
-
-		double x0 = pontosCurva[0].getX();
-		double y0 = pontosCurva[0].getY();
-
+	/**
+	 * Metodo para desenhar a curva de Bezier na tela
+	 */
+	public void plotBezier() {
 		double x, y;
 
 		double incr = 0.0001;
 
 		for (double t = 0.0; t <= 1.0; t += incr) {
-			x =      ((2 * Math.pow(t, 3) + -2 * Math.pow(t, 2) + 1 * t + 1) * pontosCurva[0].getX()
-					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + -2 * t + -1) * pontosCurva[1].getX()
-					+ (0 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 1 * t + 0) * pontosCurva[2].getX()
+			x = ((-1 * Math.pow(t, 3) + 3 * Math.pow(t, 2) - 3 * t + 1) * pontosCurva[0].getX()
+					+ (3 * Math.pow(t, 3) - 6 * Math.pow(t, 2) + 3 * t + 0) * pontosCurva[1].getX()
+					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[2].getX()
 					+ (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getX());
 
-			y =      ((2 * Math.pow(t, 3) + -2 * Math.pow(t, 2) + 1 * t + 1) * pontosCurva[0].getY()
-					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + -2 * t + -1) * pontosCurva[1].getY()
-					+ (0 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 1 * t + 0) * pontosCurva[2].getY()
+			y = ((-1 * Math.pow(t, 3) + 3 * Math.pow(t, 2) - 3 * t + 1) * pontosCurva[0].getY()
+					+ (3 * Math.pow(t, 3) - 6 * Math.pow(t, 2) + 3 * t + 0) * pontosCurva[1].getY()
+					+ (-3 * Math.pow(t, 3) + 3 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[2].getY()
 					+ (1 * Math.pow(t, 3) + 0 * Math.pow(t, 2) + 0 * t + 0) * pontosCurva[3].getY());
 
 			drawLinePoints((int) x, (int) y);
 		}
 	}
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
+	public void plotHermite() {
+		 double x1 = pontosCurva[0].getX();
+         double y1 = pontosCurva[0].getY();
+         
 
-        // se ainda nao completou a curva
-        if (this.existeDesenho == false && numPonto < 4) {
-            this.pontosCurva[numPonto] = new Point(e.getX(), e.getY());
-            numPonto++;
+         //p0
+         double x0 = pontosCurva[1].getX();
+         double y0 = pontosCurva[1].getY();
+         
 
-            if (this.existeDesenho == false && numPonto == 4) {
-                this.numPonto = 0;
-                this.existeDesenho = true;
+         //p3
+         double x3 = pontosCurva[2].getX();
+         double y3 = pontosCurva[2].getY();
+         
 
-                 if (idCurvaDesenho == BEZIER) {
-                    plotBezier();
-                }
-            }
+         //p2
+         double x2 = pontosCurva[3].getX();
+         double y2 = pontosCurva[3].getY();
+         
+         double x, y, t;
+         
+         int max = (int) ((int) 1.0 / 0.001);
 
-            repaint();
-        }
+         for (int count = 0; count <= max; count++) {
+             
+             t = (double) count / (double) max;
+             x = ((2 * t * t * t - 3 * t * t + 1) * x0
+                     + (t * t * t - 2 * t * t + t) * (x1 - x0)
+                     + (-2 * t * t * t + 3 * t * t) * x2
+                     + (t * t * t - t * t) * (x3 - x2));
+             y = ((2 * t * t * t - 3 * t * t + 1) * y0
+                     + (t * t * t - 2 * t * t + t) * (y1 - y0)
+                     + (-2 * t * t * t + 3 * t * t) * y2
+                     + (t * t * t - t * t) * (y3 - y2));
+            
 
-    }
+ 			drawLinePoints((int) x, (int) y);
+         }
+	}
 
-    @Override
-    public void mousePressed(MouseEvent e) {
+	@Override
+	public void mouseClicked(MouseEvent e) {
 
-        int pontoClicado = -1;
+		// se ainda nao completou a curva
+		if (this.existeDesenho == false && numPonto < 4) {
+			this.pontosCurva[numPonto] = new Point(e.getX(), e.getY());
+			numPonto++;
 
-        // verifica se um ponto foi clicado
-        for (int i = 0; i < 4; i++) {
-            Point p = pontosCurva[i];
+			if (this.existeDesenho == false && numPonto == 4) {
+				this.numPonto = 0;
+				this.existeDesenho = true;
 
-            // se esse ponto foi clicado
-            if (e.getX() >= (p.getX() - 3) && e.getX() <= (p.getX() + 3)
-                    && e.getY() >= (p.getY() - 3) && e.getY() <= (p.getY() + 3)) {
-                pontoClicado = i;
-                break;
-            }
-        }// fim fro
+				if (idCurvaDesenho == BEZIER) {
+					plotBezier();
+				} else if (idCurvaDesenho == HERMITE) {
+					plotHermite();
+				}
+			}
 
-        if (pontoClicado != -1) {
-            // coloca que o usuario esta arrastando esse ponto
-            this.arrastarPonto = true;
-            this.pontoArrastado = pontoClicado;
-        }
-    }
+			repaint();
+		}
 
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        // tira o ponto arrastado
-        this.arrastarPonto = false;
-        this.pontoArrastado = -1;
+	}
 
-        if (this.existeDesenho) {
+	@Override
+	public void mousePressed(MouseEvent e) {
 
-    if (this.idCurvaDesenho == this.BEZIER) {
-                limparMatriz();
-                plotBezier();
-            }
-        }
+		int pontoClicado = -1;
 
-        repaint();
-    }
+		// verifica se um ponto foi clicado
+		for (int i = 0; i < 4; i++) {
+			Point p = pontosCurva[i];
 
-    @Override
-    public void mouseEntered(MouseEvent e
-    ) {
-        //todo
-    }
+			// se esse ponto foi clicado
+			if (e.getX() >= (p.getX() - 3) && e.getX() <= (p.getX() + 3) && e.getY() >= (p.getY() - 3)
+					&& e.getY() <= (p.getY() + 3)) {
+				pontoClicado = i;
+				break;
+			}
+		} // fim fro
 
-    @Override
-    public void mouseExited(MouseEvent e
-    ) {
-        //todo
-    }
+		if (pontoClicado != -1) {
+			// coloca que o usuario esta arrastando esse ponto
+			this.arrastarPonto = true;
+			this.pontoArrastado = pontoClicado;
+		}
+	}
 
-    @Override
-    public void mouseDragged(MouseEvent e) {
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// tira o ponto arrastado
+		this.arrastarPonto = false;
+		this.pontoArrastado = -1;
 
-        // se o usuario esta arrastando um ponto
-        if (this.arrastarPonto) {
-            pontosCurva[this.pontoArrastado].setLocation(e.getX(), e.getY());
-            repaint();
-        }
-    }
+		if (this.existeDesenho) {
 
-    @Override
-    public void mouseMoved(MouseEvent e) {
+			if (this.idCurvaDesenho == this.BEZIER) {
+				limparMatriz();
+				plotBezier();
+			}
+		}
 
-    }
+		repaint();
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// todo
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// todo
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+
+		// se o usuario esta arrastando um ponto
+		if (this.arrastarPonto) {
+			pontosCurva[this.pontoArrastado].setLocation(e.getX(), e.getY());
+			repaint();
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+
+	}
+
 }
