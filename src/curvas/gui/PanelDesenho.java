@@ -299,6 +299,10 @@ public class PanelDesenho extends JPanel implements MouseListener, MouseMotionLi
 				limparMatriz();
 				plotBezier();
 			}
+			else if (this.idCurvaDesenho == this.HERMITE) {
+				limparMatriz();
+				plotHermite();
+			}
 		}
 
 		repaint();
